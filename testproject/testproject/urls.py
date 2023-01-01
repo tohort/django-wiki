@@ -42,5 +42,3 @@ urlpatterns += [
 
 handler500 = "testproject.views.server_error"
 handler404 = "testproject.views.page_not_found"
-
-#test add
