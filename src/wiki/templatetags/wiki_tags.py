@@ -12,6 +12,7 @@ from django.utils.safestring import mark_safe
 from wiki import models
 from wiki.conf import settings
 from wiki.core.plugins import registry as plugin_registry
+from django.utils import html
 
 register = template.Library()
 
@@ -87,56 +88,50 @@ def wiki_messages(context):
     return context
 
 
-# XXX html strong tag is hardcoded
 @register.filter
-def get_content_snippet(content, keyword, max_words=30):
-    """
-    Takes some text. Removes html tags and newlines from it.
-    If keyword in this text - returns a short text snippet
-    with keyword wrapped into strong tag and max_words // 2 before and after it.
-    If no keyword - return text[:max_words].
-    """
+def get_content_snippet(content, keyword, max_letters=300):
 
-    def clean_text(content):
-        """
-        Removes tags, newlines and spaces from content.
-        Return array of words.
-        """
+    content = striptags(content)
+    
+    content =re.sub(r'\r\n', ' ', content)
+    content =re.sub(r'\n', ' ', content)
+    
+    keywords=html.escape(keyword).split()
+    keywords=list(map(re.escape,keywords))
+    
+    result=re.search(keywords[0], content, re.IGNORECASE)
+    
+    startposition=0
+    if result is not None:
+        startposition=result.start()-int(max_letters/2)
+        
+    if startposition<0: startposition=0
 
-        # remove html tags
-        content = striptags(content)
-        # remove whitespace
-        words = content.split()
+    endposition=startposition+max_letters
+    if endposition>len(content): endposition=len(content)
 
-        return words
+    result_content=content[startposition:endposition]
 
-    max_words = int(max_words)
+    if startposition>0:        
+        #for the languages using space between words
+        spase_position=result_content.find(" ")
+        if spase_position >=0 and spase_position < 15: 
+            result_content=result_content[spase_position:]
 
-    match_position = content.lower().find(keyword.lower())
+        result_content="...."+result_content
 
-    if match_position != -1:
-        try:
-            match_start = content.rindex(" ", 0, match_position) + 1
-        except ValueError:
-            match_start = 0
-        try:
-            match_end = content.index(" ", match_position + len(keyword))
-        except ValueError:
-            match_end = len(content)
-        all_before = clean_text(content[:match_start])
-        match = content[match_start:match_end]
-        all_after = clean_text(content[match_end:])
-        before_words = all_before[-max_words // 2 :]
-        after_words = all_after[: max_words - len(before_words)]
-        before = " ".join(before_words)
-        after = " ".join(after_words)
-        html = ("%s %s %s" % (before, striptags(match), after)).strip()
-        kw_p = re.compile(r"(\S*%s\S*)" % keyword, re.IGNORECASE)
-        html = kw_p.sub(r"<strong>\1</strong>", html)
+    if endposition<len(content):
+        #for the languages using space between words
+        spase_position=result_content.rfind(" ")
+        if spase_position >=0 and len(result_content)-spase_position < 15: 
+            result_content=result_content[:spase_position]
 
-        return mark_safe(html)
+        result_content=result_content+"...."
 
-    return " ".join(clean_text(content)[:max_words])
+    #html markup
+    result_content=re.sub(r'('+"|".join(keywords)+')',r'<strong style="background:#ddd">\1</strong>',result_content ,flags=re.IGNORECASE)
+    
+    return result_content
 
 
 @register.filter

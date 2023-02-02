@@ -5,6 +5,12 @@ dist
 .eggs
 testproject/testproject/whoosh_index/
 testproject/testproject/xapian_index/
+src/divwiki2/*
+src/media/*
+src/templates/*
+src/manage.py
+src/db.sqlite3
+src/__init__.py
 
 tests/media
 

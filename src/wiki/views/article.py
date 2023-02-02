@@ -700,10 +700,12 @@ class SearchView(ListView):
                 articles = articles.filter(id__in=article_ids)
             except (NoRootURL, models.URLPath.DoesNotExist):
                 raise Http404
-        articles = articles.filter(
-            Q(current_revision__title__icontains=self.query)
-            | Q(current_revision__content__icontains=self.query)
-        )
+        keywords = self.query.split()
+        for k in keywords:
+            articles = articles.filter(
+                Q(current_revision__title__icontains=k)
+                | Q(current_revision__content__icontains=k)
+            )
         if not permissions.can_moderate(
             models.URLPath.root().article, self.request.user
         ):
