@@ -1,0 +1,70 @@
+{% load i18n wiki_attachment_sidebar_tags humanize wiki_tags sekizai_tags static %}
+
+{% with article|attachments_for_article as attachments %}
+
+
+
+{% for attachment in attachments %}
+    <table class="table table-bordered table-striped">
+      <tr>
+        <th colspan="4">
+          <h5 style="margin-top:0;">
+            <a href="{% url 'wiki:attachments_download' path=urlpath.path article_id=article.id attachment_id=attachment.id %}">{{ attachment.current_revision.get_filename }}</a>
+            <span class="badge badge-dark">{{ attachment.current_revision.created|naturaltime }}</span>
+          </h5>
+          {{ attachment.current_revision.description }}
+        </th>
+      </tr>
+      <tr>
+        <th style="width: 25%">{% trans "Markdown tag Insert" %}</th>
+        <th style="width: 25%">{% trans "Size" %}</th>
+      </tr>
+      <tr>
+        <td>タイトル
+          <div class="input-group">
+          <input type='text' id='attachment{{ attachment.id }}_title'></input>
+          <div class="input-group-append">
+            <button class="btn btn-outline-secondary" type="button" id="attachment_insert_button">Insert</button>
+          </div>
+        </div>
+        
+        </td>
+        <td>{{ attachment.current_revision.get_size|filesizeformat }}</td>
+      </tr>
+    </table>
+
+
+{% addtoblock "js" %}
+<script type = "text/javascript" >
+  $(document).ready(function () {
+    $("#attachment_insert_button").on("click", function () {
+      var title=$('#attachment{{ attachment.id }}_title').val();
+      if (title==""){title="{{ attachment.current_revision.get_filename }}"}
+      $('#id_content').insertAtCaret('[attachment:{{ attachment.id }} title:"'+title+'"]\n');
+    });
+  });
+</script>
+{% endaddtoblock %}
+
+    {% empty %}
+
+      <p style="margin-bottom: 20px;"><em>{% trans "There are no attachments for this article." %}</em></p>
+
+
+    {% endfor %}
+    
+    
+    
+
+[<a href="{% url 'wiki:attachments_index' path=urlpath.path article_id=article.id %}">
+添付ファイルを管理</a>]
+
+
+
+{% endwith %}
+
+{% addtoblock "js" %}<script type="text/javascript" src="{% static "wiki/select2/js/select2.min.js" %}"></script>{% endaddtoblock %}
+
+{% addtoblock "css" %}
+<link rel="stylesheet" href="{% static "wiki/select2/css/select2.min.css" %}" type="text/css" />
+{% endaddtoblock %}

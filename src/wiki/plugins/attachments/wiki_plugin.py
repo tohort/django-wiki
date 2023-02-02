@@ -18,6 +18,15 @@ class AttachmentPlugin(BasePlugin):
 
     article_tab = (_("Attachments"), "fa fa-file")
     article_view = views.AttachmentView().dispatch
+    
+    sidebar = {
+        "headline": _("Attachments"),
+        "icon_class": "fa-file",
+        "template": "wiki/plugins/attachments/sidebar.html",
+        "form_class": None,
+        "get_form_kwargs": (lambda a: {}),
+    }
+
 
     # List of notifications to construct signal handlers for. This
     # is handled inside the notifications plugin.
