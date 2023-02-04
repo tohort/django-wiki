@@ -24,7 +24,7 @@
           <div class="input-group">
           <input type='text' id='attachment{{ attachment.id }}_title'></input>
           <div class="input-group-append">
-            <button class="btn btn-outline-secondary" type="button" id="attachment_insert_button">Insert</button>
+            <button class="btn btn-outline-secondary" type="button" id="attachment_insert_button{{ attachment.id }}">Insert</button>
           </div>
         </div>
         
@@ -37,7 +37,7 @@
 {% addtoblock "js" %}
 <script type = "text/javascript" >
   $(document).ready(function () {
-    $("#attachment_insert_button").on("click", function () {
+    $("#attachment_insert_button{{ attachment.id }}").on("click", function () {
       var title=$('#attachment{{ attachment.id }}_title').val();
       if (title==""){title="{{ attachment.current_revision.get_filename }}"}
       $('#id_content').insertAtCaret('[attachment:{{ attachment.id }} title:"'+title+'"]\n');
