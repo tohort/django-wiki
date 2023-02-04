@@ -61,20 +61,12 @@ class AttachmentPreprocessor(markdown.preprocessors.Preprocessor):
                     },
                 )
 
-                # The readability of the attachment is decided relative
-                # to the owner of the original article.
-                # I.e. do not insert attachments in other articles that
-                # the original uploader cannot read, that would be out
-                # of scope!
-                article_owner = attachment.article.owner
-                if not article_owner:
-                    article_owner = AnonymousUser()
                 if not title:
                     title = attachment.original_filename
                 if size:
                     size = attachment.current_revision.get_size()
 
-                attachment_can_read = can_read(self.markdown.article, article_owner)
+                attachment_can_read = can_read(attachment.article, self.request.user)
                 html = render_to_string(
                     "wiki/plugins/attachments/render.html",
                     context={
