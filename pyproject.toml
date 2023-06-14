@@ -38,7 +38,7 @@ classifiers = [
 ]
 dependencies = [
     # Django version support is added one minor release at a time
-    "Django>=2.1,<4.2",
+    "Django>=2.2,<4.3",
     # bleach has been pretty stable, hence the loose pin
     "bleach[css]>=6,<7",
     # Pillow is used very little and has never broken
@@ -60,6 +60,14 @@ dependencies = [
     "Markdown>=3.3,<3.4",
 ]
 dynamic = ["version"]
+
+[project.optional-dependencies]
+docs = [
+    "Django>=3.1.13",
+    "bleach>=6,<7",
+    "sphinx>=6,<8",
+    "sphinx_rtd_theme==1.2.1",
+]
 
 [project.urls]
 Homepage = "http://www.django-wiki.org"
@@ -173,21 +181,23 @@ django = ["4.0"]
 
 [[tool.hatch.envs.test.matrix]]
 python = ["3.8", "3.9", "3.10", "3.11"]
-django = ["4.1"]
+django = ["4.1", "4.2"]
 
 [tool.hatch.envs.transifex]
-dependencies = [
-    "transifex-client",
-]
+dependencies = []
 
 [tool.hatch.envs.transifex.scripts]
 push = [
-    "cd src/wiki && django-admin makemessages -l en",
-    "cd ..",
-    "tx push -s",
+    "touch ~/.transifexrc",
+    # Recipe: https://github.com/transifex/cli#running-from-docker-beta
+    "docker run --rm -i -t -v `pwd`:/app -v ~/.transifexrc:/.transifexrc -v /etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt transifex/txcli --root-config /.transifexrc push -s",
 ]
 pull = [
-    "tx pull -a",
+    "touch ~/.transifexrc",
+    # Recipe: https://github.com/transifex/cli#running-from-docker-beta
+    "docker run --rm -i -t -v `pwd`:/app -v ~/.transifexrc:/.transifexrc -v /etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt transifex/txcli --root-config /.transifexrc pull -a",
+    # This can have permission errors because of Docker
+    # In this case, run chown -R USERNAME:USERGROUP src/wiki/locale
     "cd src/wiki && django-admin compilemessages",
 ]
 
@@ -195,8 +205,8 @@ pull = [
 dependencies = [
     "Django>=3.1.13",
     "bleach>=6,<7",
-    "sphinx>=3",
-    "sphinx_rtd_theme==1.1.1",
+    "sphinx>=6,<8",
+    "sphinx_rtd_theme==1.2.1",
 ]
 
 [tool.hatch.envs.docs.scripts]
